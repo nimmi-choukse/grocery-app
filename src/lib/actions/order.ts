@@ -27,17 +27,16 @@ export async function createOrder(
   );
 
   const { data: order, error: orderError } = await supabase
-    .from("orders")
-    .insert({
-      customer_id: user.id,
-      status: "pending",
-      payment_method: "COD",
-      subtotal,
-      delivery_fee: 0,
-      total: subtotal,
-      customer_note: checkoutData.customerNote || null,
-      address_id: null,
-    })
+  .from("orders")
+  .insert({
+    customer_id: user.id,
+    status: "pending",
+    payment_method: "cod",
+    subtotal,
+    delivery_fee: 0,
+    customer_note: checkoutData.customerNote || null,
+    address_id: null,
+  })
     .select("id")
     .single();
 
@@ -45,13 +44,12 @@ export async function createOrder(
     throw new Error(orderError?.message || "Failed to create order");
   }
 
-  const orderItems = cartItems.map((item) => ({
-    order_id: order.id,
-    product_id: item.productId,
-    qty: item.quantity,
-    unit_price: item.price,
-    line_total: item.price * item.quantity,
-  }));
+const orderItems = cartItems.map((item) => ({
+  order_id: order.id,
+  product_id: item.productId,
+  qty: item.quantity,
+  unit_price: item.price,
+}));
 
   const { error: itemsError } = await supabase
     .from("order_items")

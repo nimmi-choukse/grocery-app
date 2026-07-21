@@ -231,7 +231,7 @@ export default function OrdersPage() {
             )}
           </div>
 
-          {/* FreshKart logo chip */}
+          {/* SHIVAM TRADERS logo chip */}
           <a
             href="/"
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0c831f] text-lg text-white shadow-sm"

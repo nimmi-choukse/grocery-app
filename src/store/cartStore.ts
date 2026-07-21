@@ -7,7 +7,7 @@ import type {
   CartTotals,
 } from "@/types/cart";
 
-const CART_STORAGE_KEY = "freshkart-cart-v1";
+const CART_STORAGE_KEY = "SHIVAM TRADERS-cart-v1";
 
 type CartState = {
   items: CartItemsMap;

@@ -242,7 +242,7 @@ export default function AuthPage() {
           )}
 
           {message && (
-            <p className="text-sm text-green-600">
+            <p className="text-sm text-blue-700">
               {message}
             </p>
           )}

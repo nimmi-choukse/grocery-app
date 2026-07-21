@@ -8,7 +8,7 @@ type PageProps = {
     return (
       <main className="max-w-2xl mx-auto p-8 text-center">
         <div className="bg-white shadow rounded-2xl p-8">
-          <h1 className="text-3xl font-bold text-green-600 mb-4">
+          <h1 className="text-3xl font-bold text-blue-700 mb-4">
             Order Placed Successfully 🎉
           </h1>
   

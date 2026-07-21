@@ -6,6 +6,8 @@ import { useCartStore } from "@/store/cartStore";
 import { createOrder } from "@/lib/actions/order";
 import { createClient } from "@/lib/supabase/client";
 
+import { ShoppingBag, ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+
 /* -------------------------------------------------------------------------- */
 /* Types                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -16,6 +18,7 @@ type FormFields = {
   addressLine1: string;
   area: string;
   city: string;
+  state: string;
   pincode: string;
   deliveryNotes: string;
 };
@@ -44,6 +47,7 @@ function validate(fields: FormFields): FormErrors {
   }
   if (!fields.addressLine1.trim()) errors.addressLine1 = "Address is required";
   if (!fields.city.trim()) errors.city = "City is required";
+  if (!fields.state.trim()) errors.state = "State is required";
   if (!fields.pincode.trim()) {
     errors.pincode = "Pincode is required";
   } else if (!/^\d{6}$/.test(fields.pincode.trim())) {
@@ -78,10 +82,10 @@ function InputField({
   maxLength?: number;
 }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1.5">
       <label
         htmlFor={name}
-        className="text-xs font-semibold uppercase tracking-wide text-zinc-500"
+        className="text-xs font-semibold uppercase tracking-wide text-gray-500"
       >
         {label}
         {required && <span className="ml-0.5 text-red-500">*</span>}
@@ -93,10 +97,10 @@ function InputField({
         onChange={(e) => onChange(name, e.target.value)}
         placeholder={placeholder}
         maxLength={maxLength}
-        className={`h-11 rounded-xl border px-3.5 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:ring-2 ${
+        className={`h-[52px] rounded-xl border px-4 text-sm text-gray-900 shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:ring-2 ${
           error
             ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
-            : "border-zinc-200 bg-zinc-50 focus:border-[#0c831f] focus:bg-white focus:ring-[#0c831f]/20"
+            : "border-gray-200 bg-white focus:border-[#0D3B8E] focus:ring-[#0D3B8E]/20 focus:shadow-[0_0_0_4px_rgba(13,59,142,0.1)]"
         }`}
       />
       {error && (
@@ -114,15 +118,17 @@ function InputField({
 function EmptyCartState() {
   const router = useRouter();
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-zinc-100 bg-white p-8 text-center shadow-sm">
-        <span className="text-5xl" aria-hidden>🛒</span>
-        <h1 className="mt-4 text-lg font-bold text-zinc-900">Your cart is empty</h1>
-        <p className="mt-1 text-sm text-zinc-500">Add some groceries before checking out.</p>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#F8FAFC] px-4">
+      <div className="w-full max-w-sm rounded-3xl border border-gray-100 bg-white p-8 text-center shadow-lg transition-all duration-300 hover:shadow-xl">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
+          <ShoppingBag className="h-8 w-8 text-[#0D3B8E]" strokeWidth={1.5} />
+        </div>
+        <h1 className="mt-4 text-lg font-bold text-gray-900">Your cart is empty</h1>
+        <p className="mt-1 text-sm text-gray-500">Add some groceries before checking out.</p>
         <button
           type="button"
           onClick={() => router.push("/")}
-          className="mt-6 w-full rounded-xl bg-[#0c831f] py-3 text-sm font-bold text-white hover:bg-emerald-700 active:scale-[0.98]"
+          className="mt-6 h-14 w-full rounded-2xl bg-[#0D3B8E] text-sm font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-[#1E56B3] active:scale-[0.98]"
         >
           Shop now
         </button>
@@ -152,6 +158,7 @@ export default function CheckoutPage() {
     addressLine1: "",
     area: "",
     city: "",
+    state: "",
     pincode: "",
     deliveryNotes: "",
   });
@@ -189,15 +196,14 @@ if (!user) {
   return;
 }
       const orderId = await createOrder(items, {
-        customerNote: [
-          fields.addressLine1.trim(),
-          fields.area.trim(),
-          fields.city.trim(),
-          fields.pincode.trim(),
-          fields.deliveryNotes.trim(),
-        ]
-          .filter(Boolean)
-          .join(", "),
+        customerName: fields.customerName.trim(),
+        phone: fields.phone.trim(),
+        addressLine1: fields.addressLine1.trim(),
+        area: fields.area.trim(),
+        city: fields.city.trim(),
+        state: fields.state.trim(),
+        pincode: fields.pincode.trim(),
+        deliveryNotes: fields.deliveryNotes.trim(),
       });
 
       clearCart();
@@ -214,47 +220,45 @@ if (!user) {
   if (items.length === 0) return <EmptyCartState />;
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900">
+    <div className="min-h-screen bg-[#F8FAFC] text-gray-900">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-zinc-200/80 bg-white/95 shadow-sm backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4 sm:h-16">
+      <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 shadow-sm backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4 sm:h-20">
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 text-zinc-600 transition-colors hover:bg-zinc-50"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 text-gray-600 transition-all duration-300 hover:bg-gray-50 hover:text-[#0D3B8E]"
             aria-label="Go back"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
+            <ArrowLeft className="h-4 w-4" strokeWidth={2} />
           </button>
 
           <div className="flex-1">
-            <h1 className="text-base font-extrabold tracking-tight text-zinc-900">Checkout</h1>
-            <p className="text-[11px] font-medium text-zinc-500">
-              {items.length} item{items.length !== 1 ? "s" : ""} · Cash on delivery
+            <h1 className="text-2xl font-bold text-[#0D3B8E] sm:text-4xl">Checkout</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Complete your order securely with Shivam Traders
             </p>
           </div>
 
           <a
             href="/"
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0c831f] text-lg text-white shadow-sm"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0D3B8E] text-white shadow-md transition-all duration-300 hover:scale-105 hover:bg-[#1E56B3]"
             aria-label="Go to home"
           >
-            🥬
+            <ShoppingBag className="h-5 w-5" strokeWidth={2.25} />
           </a>
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl gap-6 px-4 py-6 lg:grid lg:grid-cols-[1fr_380px] lg:items-start lg:py-8">
+      <main className="mx-auto max-w-5xl gap-6 px-4 py-8 lg:grid lg:grid-cols-[1fr_380px] lg:items-start lg:py-12">
 
         {/* ── Left: Delivery form ── */}
         <section className="space-y-6">
 
           {/* Contact */}
-          <div className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm">
-            <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-zinc-500">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0c831f] text-[10px] font-black text-white">1</span>
+          <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-lg transition-all duration-300 hover:shadow-xl">
+            <h2 className="mb-5 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-900">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0D3B8E] text-[10px] font-black text-white">1</span>
               Contact details
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -282,9 +286,9 @@ if (!user) {
           </div>
 
           {/* Address */}
-          <div className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm">
-            <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-zinc-500">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0c831f] text-[10px] font-black text-white">2</span>
+          <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-lg transition-all duration-300 hover:shadow-xl">
+            <h2 className="mb-5 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-900">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0D3B8E] text-[10px] font-black text-white">2</span>
               Delivery address
             </h2>
             <div className="grid gap-4">
@@ -305,7 +309,7 @@ if (!user) {
                 error={errors.area}
                 placeholder="Sector 12, MG Road…"
               />
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <InputField
                   label="City"
                   name="city"
@@ -313,6 +317,15 @@ if (!user) {
                   onChange={handleChange}
                   error={errors.city}
                   placeholder="Bengaluru"
+                  required
+                />
+                <InputField
+                  label="State"
+                  name="state"
+                  value={fields.state}
+                  onChange={handleChange}
+                  error={errors.state}
+                  placeholder="Karnataka"
                   required
                 />
                 <InputField
@@ -330,17 +343,17 @@ if (!user) {
           </div>
 
           {/* Delivery notes */}
-          <div className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm">
-            <h2 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-zinc-500">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0c831f] text-[10px] font-black text-white">3</span>
+          <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-lg transition-all duration-300 hover:shadow-xl">
+            <h2 className="mb-5 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-900">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0D3B8E] text-[10px] font-black text-white">3</span>
               Delivery notes
-              <span className="ml-1 rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-400">
+              <span className="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-400">
                 Optional
               </span>
             </h2>
             <label
               htmlFor="deliveryNotes"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-500"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500"
             >
               Note for delivery partner
             </label>
@@ -350,13 +363,13 @@ if (!user) {
               onChange={(e) => handleChange("deliveryNotes", e.target.value)}
               placeholder="e.g. Leave at door, Ring bell twice…"
               rows={3}
-              className="w-full resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-3 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-[#0c831f] focus:bg-white focus:ring-2 focus:ring-[#0c831f]/20"
+              className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-[#0D3B8E] focus:ring-2 focus:ring-[#0D3B8E]/20 focus:shadow-[0_0_0_4px_rgba(13,59,142,0.1)]"
             />
           </div>
 
           {/* Submit error */}
           {submitError && (
-            <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-4">
+            <div className="flex items-start gap-2.5 rounded-2xl border border-red-200 bg-red-50 p-4">
               <span className="mt-0.5 text-base" aria-hidden>⚠️</span>
               <p className="text-sm font-medium text-red-700">{submitError}</p>
             </div>
@@ -369,31 +382,31 @@ if (!user) {
         </section>
 
         {/* ── Right: Order summary sidebar ── */}
-        <aside className="space-y-4">
+        <aside className="mt-6 space-y-4 lg:mt-0">
           {/* COD badge */}
-          <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <div className="flex items-center gap-3 rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-5 py-4">
             <span className="text-2xl" aria-hidden>💵</span>
             <div>
-              <p className="text-sm font-bold text-emerald-800">Cash on Delivery</p>
-              <p className="text-xs text-emerald-600">Pay when your order arrives</p>
+              <p className="text-sm font-bold text-[#0D3B8E]">Cash on Delivery</p>
+              <p className="text-xs text-gray-500">Pay when your order arrives</p>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm">
-            <div className="border-b border-zinc-100 px-5 py-4">
-              <h2 className="text-sm font-bold text-zinc-900">
+          <div className="rounded-3xl border border-gray-100 bg-white shadow-lg transition-all duration-300 hover:shadow-xl">
+            <div className="border-b border-gray-100 px-6 py-5">
+              <h2 className="text-sm font-bold text-gray-900">
                 Order Summary
-                <span className="ml-2 font-normal text-zinc-400">
+                <span className="ml-2 font-normal text-gray-400">
                   ({items.length} item{items.length !== 1 ? "s" : ""})
                 </span>
               </h2>
             </div>
 
             {/* Items */}
-            <ul className="divide-y divide-zinc-50 px-5">
+            <ul className="divide-y divide-gray-50 px-6">
               {items.map((item) => (
-                <li key={item.productId} className="flex items-center gap-3 py-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-zinc-50 text-lg">
+                <li key={item.productId} className="flex items-center gap-3 py-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-lg">
                     {item.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -406,15 +419,15 @@ if (!user) {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-semibold text-zinc-800">{item.name}</p>
+                    <p className="truncate text-xs font-semibold text-gray-800">{item.name}</p>
                     {item.unit && (
-                      <p className="text-[10px] text-zinc-400">{item.unit}</p>
+                      <p className="text-[10px] text-gray-400">{item.unit}</p>
                     )}
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-xs text-gray-500">
                       {formatPrice(item.price)} × {item.quantity}
                     </p>
                   </div>
-                  <p className="shrink-0 text-sm font-bold text-zinc-900">
+                  <p className="shrink-0 text-sm font-bold text-[#0D3B8E]">
                     {formatPrice(item.price * item.quantity)}
                   </p>
                 </li>
@@ -422,35 +435,31 @@ if (!user) {
             </ul>
 
             {/* Totals */}
-            <div className="space-y-2 border-t border-zinc-100 px-5 py-4">
-              <div className="flex justify-between text-sm text-zinc-600">
+            <div className="space-y-2.5 border-t border-gray-100 px-6 py-5">
+              <div className="flex justify-between text-sm text-gray-500">
                 <span>Subtotal</span>
-                <span className="font-semibold">{formatPrice(subtotal)}</span>
+                <span className="font-semibold text-gray-900">{formatPrice(subtotal)}</span>
               </div>
-              <div className="flex justify-between text-sm text-zinc-600">
+              <div className="flex justify-between text-sm text-gray-500">
                 <span>Delivery fee</span>
-                <span className="font-semibold text-emerald-600">FREE</span>
+                <span className="font-semibold text-[#0D3B8E]">FREE</span>
               </div>
-              <div className="flex justify-between border-t border-zinc-100 pt-3 text-base font-extrabold text-zinc-900">
+              <div className="flex justify-between border-t border-gray-100 pt-4 text-base font-bold text-gray-900">
                 <span>Total</span>
-                <span>{formatPrice(total)}</span>
+                <span className="text-2xl font-bold text-[#0D3B8E]">{formatPrice(total)}</span>
               </div>
             </div>
 
             {/* CTA — desktop sidebar */}
-            <div className="hidden px-5 pb-5 lg:block">
+            <div className="hidden px-6 pb-6 lg:block">
               <PlaceOrderButton loading={loading} onPress={handlePlaceOrder} total={total} />
             </div>
           </div>
-
-          <p className="text-center text-[10px] font-medium uppercase tracking-widest text-zinc-400">
-            ⚡ Delivery in ~10 minutes
-          </p>
         </aside>
       </main>
 
-      <footer className="border-t border-zinc-200 bg-white py-6 text-center text-xs text-zinc-500">
-        © {new Date().getFullYear()} FreshKart · Fast grocery delivery
+      <footer className="border-t border-gray-100 bg-white py-6 text-center text-xs text-gray-500">
+        © {new Date().getFullYear()} SHIVAM TRADERS · Fast grocery delivery
       </footer>
     </div>
   );
@@ -482,39 +491,17 @@ function PlaceOrderButton({
       type="button"
       onClick={onPress}
       disabled={loading}
-      className="group relative w-full overflow-hidden rounded-xl bg-[#0c831f] py-3.5 text-sm font-bold text-white shadow-md transition-all duration-200 hover:bg-emerald-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+      className="group relative h-14 w-full overflow-hidden rounded-2xl bg-[#0D3B8E] text-sm font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-[#1E56B3] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
     >
       {loading ? (
         <span className="flex items-center justify-center gap-2">
-          <svg
-            className="h-4 w-4 animate-spin"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 3v3m0 12v3M3 12h3m12 0h3m-2.636-6.364-2.121 2.121M8.757 15.243l-2.121 2.121m0-12.728 2.121 2.121m6.364 6.364 2.121 2.121"
-            />
-          </svg>
+          <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} aria-hidden />
           Placing Order…
         </span>
       ) : (
         <span className="flex items-center justify-center gap-2">
           Place Order (COD) · {formatPrice(total)}
-          <svg
-            className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-          </svg>
+          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2} aria-hidden />
         </span>
       )}
     </button>
